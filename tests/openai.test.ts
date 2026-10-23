@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import OpenAI from 'openai';
-import {checkConnection,generateApprovedDraft,safeError,configuration,createClient,type ResponsesClient,type ApprovedDraftInput} from '../lib/server/openai';
+import {researchWithSources,checkConnection,generateApprovedDraft,safeError,configuration,createClient,type ResponsesClient,type ApprovedDraftInput} from '../lib/server/openai';
 import {prepareOpenAI,finishOpenAI} from '../lib/server/openai-workflow';
 import {fixtures} from '../lib/demo-fixtures';
 import {applyAction,actionSchema} from '../lib/demo-service';
@@ -15,3 +15,33 @@ test('SDK credential errors are sanitized; no raw message or headers returned',(
 test('missing configuration fails clearly without making a request',()=>{const old=process.env.OPENAI_API_KEY;delete process.env.OPENAI_API_KEY;try{assert.equal(configuration().configured,false);assert.throws(()=>createClient(),/not available to the server/)}finally{if(old!==undefined)process.env.OPENAI_API_KEY=old}});
 test('gate validation happens before AI work; preparation does not modify saved state',()=>{const s=fixtures();assert.throws(()=>prepareOpenAI(s,{action:'generate-openai',version:s.campaign.version,companyId:'qualified'},'BDR'),/Select/);const r=ready();const before=structuredClone(r);const context=prepareOpenAI(r,{action:'generate-openai',version:r.campaign.version,companyId:'qualified'},'BDR');assert.deepEqual(r,before);assert.equal(context.demo,true);assert.equal(context.approvedClaim,input.approvedClaim);assert.throws(()=>prepareOpenAI(r,{action:'generate-openai',version:r.campaign.version,companyId:'qualified'},'GM'),/BDR role/)});
 test('result never auto-approves and concurrent edits reject stale AI output',()=>{const s=ready(),action={action:'generate-openai' as const,version:s.campaign.version,companyId:'qualified'};const result={text:'A reviewed candidate',model:'fixture-model',responseId:'resp_fixture',generatedAt:new Date().toISOString(),promptVersion:'evox-draft-v1' as const};const finished=finishOpenAI(structuredClone(s),action,'BDR',result);assert.equal(finished.drafts.at(-1)!.approved,false);assert.equal(finished.drafts.at(-1)!.provider,'openai');assert.equal(finished.drafts.at(-1)!.responseId,'resp_fixture');s.campaign.version++;assert.throws(()=>finishOpenAI(s,action,'BDR',result),/changed during AI generation/)});
+
+test('draft and research model overrides are independent',()=>{
+ const oldDraft=process.env.OPENAI_DRAFT_MODEL,oldResearch=process.env.OPENAI_RESEARCH_MODEL;
+ try{process.env.OPENAI_DRAFT_MODEL='draft-model';process.env.OPENAI_RESEARCH_MODEL='research-model';assert.equal(configuration().model,'draft-model');assert.equal(configuration().researchModel,'research-model');}
+ finally{if(oldDraft===undefined)delete process.env.OPENAI_DRAFT_MODEL;else process.env.OPENAI_DRAFT_MODEL=oldDraft;if(oldResearch===undefined)delete process.env.OPENAI_RESEARCH_MODEL;else process.env.OPENAI_RESEARCH_MODEL=oldResearch;}
+});
+test('research requires a completed search and genuine citation annotations',async()=>{
+ let body:any;
+ const output:any[]=[{type:'web_search_call',status:'completed'},{type:'message',content:[{type:'output_text',annotations:[{type:'url_citation',url:'https://developers.openai.com/',title:'OpenAI',start_index:0,end_index:4}]}]}];
+ const client={responses:{create:async(b:any)=>{body=b;return {status:'completed',model:'research-model',id:'resp_test',output_text:'Text',output};}}} as unknown as ResponsesClient;
+ const result=await researchWithSources('Research',client);
+ assert.equal(result.sources[0].url,'https://developers.openai.com/');assert.equal(body.tools[0].type,'web_search');assert.equal(body.tool_choice,'required');assert.equal(body.store,false);assert.equal(body.model,configuration().researchModel);
+ output.shift();await assert.rejects(()=>researchWithSources('Research',client),/source citations/);
+ output.splice(0);await assert.rejects(()=>researchWithSources('Research',client),/source citations/);
+});
+test('billing quota is distinguished from authentication without exposing provider text',()=>{
+ const raw=new OpenAI.APIError(429,{code:'insufficient_quota',message:'private'},'private',new Headers());
+ assert.equal(safeError(raw).code,'billing_quota');assert.equal(safeError(raw).message.includes('private'),false);
+});
+test('authentication diagnostics retain allowlisted provider metadata and never masked credentials',()=>{
+ const old=process.env.OPENAI_API_KEY;
+ const synthetic='test-placeholder-value-for-binding';
+ process.env.OPENAI_API_KEY=synthetic;
+ try{
+  const raw=new OpenAI.APIError(401,{type:'invalid_request_error',code:'invalid_api_key',message:'Incorrect API key provided: test-***-binding. You can find your API key at the provider.'},'provider details',new Headers({'x-request-id':'req_123456789abcdef0'}));
+  const safe=safeError(raw);
+  assert.equal(safe.upstreamStatus,401);assert.equal(safe.providerType,'invalid_request_error');assert.equal(safe.providerCode,'invalid_api_key');assert.equal(safe.requestId,'req_123456789abcdef0');assert.equal(safe.credentialSubstitutionSuspected,true);
+  assert.equal(JSON.stringify(safe).includes(synthetic),false);assert.equal(JSON.stringify(safe).includes('test-***'),false);
+ }finally{if(old===undefined)delete process.env.OPENAI_API_KEY;else process.env.OPENAI_API_KEY=old;}
+});

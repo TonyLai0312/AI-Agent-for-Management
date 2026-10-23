@@ -48,10 +48,14 @@ See `docs/build-plan.md`, `docs/acceptance-criteria.md` and `docs/test-report.md
 
 ## Optional OpenAI drafting
 
-The template workflow still runs without credentials. For real model-generated drafts on the same labelled demo inputs, bind `OPENAI_API_KEY` to the server runtime (never NEXT_PUBLIC), optionally set `OPENAI_MODEL`, and restart. The GM screen has a connection check; Outreach Draft has **Generate with OpenAI**. Existing approvals and BDR review remain required.
+The template workflow still runs without credentials. For real model-generated drafts on the same labelled demo inputs, bind `OPENAI_API_KEY` to the server runtime (never NEXT_PUBLIC), optionally set `OPENAI_DRAFT_MODEL` and `OPENAI_RESEARCH_MODEL`, and restart. The GM screen has a connection check; Outreach Draft has **Generate with OpenAI**. Existing approvals and BDR review remain required.
 
 ```sh
 npm run openai:check
 ```
 
 See `docs/openai-integration.md` for setup, tests and the live-connection verification status. The current environment has no accessible key; live verification is blocked until the secret is bound. Research remains fixtures.
+
+### Live AI task services
+
+The server adapter separates market/company research, public contact discovery, industry/reference matching and approved drafting. Configure `OPENAI_RESEARCH_MODEL`, `OPENAI_CONTACT_MODEL`, `OPENAI_MATCH_MODEL` and `OPENAI_DRAFT_MODEL`; each defaults to `gpt-4.1-mini`. Run `npm run openai:check` for sanitized live connection and web-search outcomes. See `docs/openai-integration.md` for API schemas, limits and prototype authentication constraints. Suggestions require human review and do not replace the visibly labelled fixture records automatically.

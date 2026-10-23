@@ -1,7 +1,8 @@
 import {cookies} from 'next/headers';
 import {db,load,save,serial,sessionRole,resetDemo} from '@/lib/demo-db';
 import {actionSchema,applyAction,RuleError} from '@/lib/demo-service';
-import {generateApprovedDraft,OpenAIIntegrationError} from '@/lib/server/openai';
+import {OpenAIIntegrationError} from '@/lib/server/openai';
+import {aiAdapter} from '@/lib/server/ai-adapter';
 import {prepareOpenAI,finishOpenAI} from '@/lib/server/openai-workflow';
 import {DEMO_ID} from '@/lib/demo-fixtures';
 export const runtime='nodejs';
@@ -15,7 +16,7 @@ export async function POST(req:Request){
  const pg=await db();
  if(parsed.data.action==='generate-openai'){
   const snapshot=await serial(()=>load(pg));const input=prepareOpenAI(snapshot,parsed.data,role);
-  const generated=await generateApprovedDraft(input);
+  const generated=await aiAdapter.draft(input);
   const state=await serial(()=>pg.transaction(async tx=>{const current=await load(tx);const next=finishOpenAI(current,parsed.data,role,generated);await save(tx,next);return next}));
   return Response.json({state,role});
  }
