@@ -2,6 +2,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {z} from 'zod';
 import {db,serial} from '../demo-db';
 import {qualifyReport} from '../market-research';
+import {ensureMonitor,syncLiveInvitations} from './monitor-store';
 import {researchWorkspaceLocked} from './research-store';
 import {publicCustomerProposals} from '../public-customer-proposals';
 import {outreachState,outreachContactKey,outreachContact,outreachRoute,currentDraft,characterCount,type DraftSupport,publicURL,sourceInput,referenceInputSchema,entityKey,industryKey,relevantRole,idleLookup,contactGate,industryGate,referenceForDraft,invalidateProspect,validateReferenceApproval,ProspectRuleError,type ProspectWorkspace,type SelectedProspect,type CustomerReference,type ReferenceInput,type LookupState} from '../prospecting';
@@ -22,7 +23,7 @@ export const prospectActionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('refresh-references'),version}).strict(),
  z.object({action:z.literal('generate'),version,companyId:id,warm:z.boolean().optional()}).strict(),
  z.object({action:z.literal('outreach-settings'),version,companyId:id,connectionLimit:z.number().int().min(50).max(1000)}).strict(),
- z.object({action:z.literal('outreach-status'),version,companyId:id,status:z.enum(['new','accepted','checked/pending','declined','wrong contact']),reviewer,note,confirmed:z.literal(true)}).strict(),
+ z.object({action:z.literal('outreach-status'),version,companyId:id,sendId:id.optional(),status:z.enum(['new','accepted','checked/pending','declined','wrong contact']),reviewer,note,confirmed:z.literal(true)}).strict(),
  z.object({action:z.literal('relationship'),version,companyId:id,text:z.string().trim().min(10).max(2000),occurredOn:z.iso.date(),reviewer,note,confirmed:z.literal(true)}).strict(),
  z.object({action:z.literal('clear-relationship'),version,companyId:id,reviewer,note}).strict(),
  z.object({action:z.literal('edit-draft'),version,companyId:id,draftId:id,text:z.string().trim().min(1).max(5000)}).strict(),
@@ -34,7 +35,7 @@ export type ProspectAction=z.infer<typeof prospectActionSchema>;
 const globals=globalThis as unknown as {evoxProspectRuns?:Set<string>};const running=globals.evoxProspectRuns??=new Set();
 function proposed(input:ReferenceInput,origin:CustomerReference['origin'],idValue:string=randomUUID(),publicationDate:string|null=null,retrievedAt=new Date().toISOString()):CustomerReference{return {...input,id:idValue,version:1,status:'proposed',approver:null,approvedAt:null,reviewNote:'',origin,retrievedAt,publicationDate,materialHash:input.materialName?createHash('sha256').update(input.excerpt).digest('hex'):null};}
 async function load():Promise<ProspectWorkspace>{const pg=await db();await pg.exec('CREATE TABLE IF NOT EXISTS prospecting_workspaces(id text PRIMARY KEY,data jsonb NOT NULL)');const result=await pg.query<{data:ProspectWorkspace}>('SELECT data FROM prospecting_workspaces WHERE id=$1',['live-prospecting']);const stored=result.rows[0]?.data;if(stored){for(const c of stored.companies){outreachState(c);for(const d of c.drafts)if(!d.channel)d.invalidated=true;}return stored;}return {version:1,companies:[],references:publicCustomerProposals.map(({id,publicationDate,...r})=>proposed(r,'website',id,publicationDate,'2026-10-23')),referenceHistory:[],importStatus:idleLookup(),events:[]};}
-async function save(w:ProspectWorkspace){const pg=await db();await pg.query('INSERT INTO prospecting_workspaces(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=excluded.data',['live-prospecting',JSON.stringify(w)]);}
+async function save(w:ProspectWorkspace){const pg=await db();await ensureMonitor(pg);await pg.transaction(async tx=>{await tx.query('INSERT INTO prospecting_workspaces(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=excluded.data',['live-prospecting',JSON.stringify(w)]);await syncLiveInvitations(tx,w);});}
 function event(w:ProspectWorkspace,action:string,companyId:string|null,detail:string){w.events.push({at:new Date().toISOString(),actor:'BDR',action,companyId,detail});}
 function requireRule(condition:unknown,message:string,status=422):asserts condition{if(!condition)throw new ProspectRuleError('gate_blocked',message,status);}
 function revision(w:ProspectWorkspace,v:number){requireRule(w.version===v,'Prospecting workspace changed. Refresh and retry.',409);}
@@ -67,14 +68,14 @@ export async function applyProspectAction(raw:unknown,role:string){requireRule(r
    if(a.referenceId){const ref=w.references.find(r=>r.id===a.referenceId);requireRule(ref,'Reference not found.',404);w.referenceHistory.push(structuredClone(ref));Object.assign(ref,input,{version:ref.version+1,status:'proposed',approver:null,approvedAt:null,reviewNote:'',materialHash:input.materialName?createHash('sha256').update(input.excerpt).digest('hex'):null});for(const c of w.companies)if(c.decision?.kind==='reference'&&c.decision.referenceId===ref.id)invalidateProspect(c,'reference');}
    else w.references.push(proposed(input,'bdr-material'));event(w,a.action,null,'Reference saved as an unapproved proposal; affected decisions/drafts invalidated.');
   }else{
-   const c=selected(w,a.companyId);if(!['outreach-status','relationship','clear-relationship','outreach-settings'].includes(a.action))idle(c);await qualification(c);
+   const c=selected(w,a.companyId);if(!['outreach-status','relationship','clear-relationship','outreach-settings'].includes(a.action))idle(c);if(a.action!=='outreach-status')await qualification(c);
    if(a.action==='outreach-settings'){
     outreachState(c).connectionLimit=a.connectionLimit;for(const d of c.drafts)d.invalidated=true;
    }else if(a.action==='outreach-status'){
-    const key=outreachContactKey(c),state=outreachState(c),old=outreachContact(c);
+    const state=outreachState(c),target=a.sendId?state.sends.find(s=>s.id===a.sendId&&s.channel==='connection'):null;requireRule(!a.sendId||target,'Invitation record not found.');const key=target?.contactKey??outreachContactKey(c),old=state.contacts[key]??outreachContact(c);const invitation=target??state.sends.filter(s=>s.contactKey===key&&s.channel==='connection').at(-1);
     requireRule(a.status!=='new'||(old.status==='new'&&!state.sends.some(send=>send.contactKey===key&&send.channel==='connection')),'An existing connection or invitation cannot be reset to new.');
-    state.contacts[key]={...old,status:a.status,updatedAt:new Date().toISOString(),reviewer:a.reviewer,note:a.note};for(const d of c.drafts)d.invalidated=true;
-    if(a.status==='wrong contact'){invalidateProspect(c,'contact');c.manualSearchTask='Wrong contact reported. Rediscover and confirm a different current contact before continuing.';}
+    state.contacts[key]={...old,status:a.status,updatedAt:new Date().toISOString(),reviewer:a.reviewer,note:a.note,...(invitation?{statusCheckedAt:new Date().toISOString(),statusSendId:invitation.id}:{})};for(const d of c.drafts)d.invalidated=true;
+    if(a.status==='wrong contact'&&c.contactId&&outreachContactKey(c)===key){invalidateProspect(c,'contact');c.manualSearchTask='Wrong contact reported. Rediscover and confirm a different current contact before continuing.';}
    }else if(a.action==='relationship'||a.action==='clear-relationship'){
     const key=outreachContactKey(c),state=outreachState(c),old=outreachContact(c);
     if(a.action==='relationship')requireRule(a.occurredOn<=new Date().toISOString().slice(0,10),'Relationship event cannot be in the future.');
@@ -91,8 +92,8 @@ export async function applyProspectAction(raw:unknown,role:string){requireRule(r
     }else{
      requireRule(draft.approvedBy&&draft.approvedAt,'BDR must approve the final text before recording a manual send.');
      requireRule(Date.parse(a.sentAt)<=Date.now()&&Date.parse(a.sentAt)>=Date.parse(draft.approvedAt),'Actual manual send time must be after approval and no later than now.');
-     const state=outreachState(c),key=outreachContactKey(c);state.sends.push({id:randomUUID(),draftId:draft.id,contactKey:key,channel:draft.channel!,text:draft.text,sentAt:a.sentAt,recordedAt:new Date().toISOString(),recordedBy:a.reviewer});
-     if(draft.channel==='connection')state.contacts[key]={...outreachContact(c),status:'checked/pending',updatedAt:new Date().toISOString(),reviewer:a.reviewer,note:'Manual invitation send recorded; pending response.'};for(const d of c.drafts)d.invalidated=true;
+     const state=outreachState(c),key=outreachContactKey(c);state.sends.push({id:randomUUID(),draftId:draft.id,contactKey:key,channel:draft.channel!,text:draft.text,sentAt:a.sentAt,recordedAt:new Date().toISOString(),recordedBy:a.reviewer,monitoringVersion:1});
+     if(draft.channel==='connection')state.contacts[key]={...outreachContact(c),statusCheckedAt:undefined,statusSendId:undefined,status:'checked/pending',updatedAt:new Date().toISOString(),reviewer:a.reviewer,note:'Manual invitation send recorded; pending response.'};for(const d of c.drafts)d.invalidated=true;
     }
    }else if(a.action==='manual-contact'){
     requireRule(relevantRole(a.title),'Use a CFO, FP&A, Finance Transformation, Controller or CIO role.');const time=new Date().toISOString();
@@ -118,7 +119,7 @@ export async function applyProspectAction(raw:unknown,role:string){requireRule(r
     if(a.referenceId){const ref=w.references.find(r=>r.id===a.referenceId);requireRule(ref&&ref.status==='approved'&&!ref.logoOnly,'Choose an approved detailed reference or explicitly choose no customer reference.');requireRule(industryKey(ref.industry)===industryKey(c.industry!.value),'Reference does not match the confirmed industry.');c.decision={kind:'reference',referenceId:ref.id,referenceVersion:ref.version,confirmedBy:a.reviewer,confirmedAt:now,note:a.note};}
     else c.decision={kind:'no-reference',confirmedBy:a.reviewer,confirmedAt:now,note:a.note};
    }
-   event(w,a.action,c.id,'reviewer' in a?JSON.stringify({reviewer:a.reviewer,note:'note' in a?a.note:null,contactId:'contactId' in a?a.contactId:null,industry:'industry' in a?a.industry:null,referenceId:'referenceId' in a?a.referenceId:null,status:'status' in a?a.status:null,draftId:'draftId' in a?a.draftId:null,relationship:'text' in a&&a.action==='relationship'?{text:a.text,occurredOn:a.occurredOn}:null}):'BDR input saved; dependent approvals/drafts invalidated.');
+   event(w,a.action,c.id,'reviewer' in a?JSON.stringify({reviewer:a.reviewer,note:'note' in a?a.note:null,contactId:'contactId' in a?a.contactId:null,industry:'industry' in a?a.industry:null,referenceId:'referenceId' in a?a.referenceId:null,sendId:'sendId' in a?a.sendId:null,status:'status' in a?a.status:null,draftId:'draftId' in a?a.draftId:null,relationship:'text' in a&&a.action==='relationship'?{text:a.text,occurredOn:a.occurredOn}:null}):'BDR input saved; dependent approvals/drafts invalidated.');
   }
   w.version++;await save(w);return view(w);
  });

@@ -1,0 +1,7 @@
+// Run under a process supervisor alongside the single persistent Node app instance.
+const base=process.env.APP_BASE_URL,secret=process.env.CRON_SECRET;
+if(!base||!secret||secret.length<32||secret.startsWith('YOUR_')){process.stdout.write(JSON.stringify({ok:false,code:'configuration',message:'Set APP_BASE_URL and a strong CRON_SECRET.'})+'\n');process.exit(1);}
+let target;try{target=new URL('/api/jobs/overdue',base);if(target.protocol!=='https:'&&!['127.0.0.1','localhost'].includes(target.hostname))throw new Error();if(target.username||target.password)throw new Error();}catch{process.stdout.write(JSON.stringify({ok:false,code:'configuration',message:'APP_BASE_URL must use HTTPS, or loopback HTTP for local tests.'})+'\n');process.exit(1);}
+let stopped=false,timer;const stop=()=>{stopped=true;clearTimeout(timer);};process.on('SIGTERM',stop);process.on('SIGINT',stop);
+async function tick(){if(stopped)return;try{const response=await fetch(target,{method:'POST',headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(240000),redirect:'error'});const value=await response.json();process.stdout.write(JSON.stringify({event:'overdue_job',ok:response.ok&&value.ok===true,httpStatus:response.status,counts:value.counts??null,code:typeof value.code==='string'?value.code:null})+'\n');}catch{process.stdout.write(JSON.stringify({event:'overdue_job',ok:false,code:'network_or_timeout'})+'\n');}if(!stopped)timer=setTimeout(tick,60000);}
+await tick();

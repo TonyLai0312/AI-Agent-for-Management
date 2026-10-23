@@ -44,8 +44,8 @@ export function validateReferenceApproval(reference:CustomerReference){
 export type OutreachStatus='new'|'accepted'|'checked/pending'|'declined'|'wrong contact';
 export type OutreachChannel='connection'|'linkedin'|'email';
 export type Relationship={text:string;occurredOn:string;confirmedBy:string;confirmedAt:string;note:string};
-export type ContactOutreach={status:OutreachStatus;updatedAt:string;reviewer:string;note:string;history:Relationship|null};
-export type OutreachState={connectionLimit:number;contacts:Record<string,ContactOutreach>;sends:{id:string;draftId:string;contactKey:string;channel:OutreachChannel;text:string;sentAt:string;recordedAt:string;recordedBy:string}[]};
+export type ContactOutreach={status:OutreachStatus;updatedAt:string;reviewer:string;note:string;statusCheckedAt?:string;statusSendId?:string;history:Relationship|null};
+export type OutreachState={connectionLimit:number;contacts:Record<string,ContactOutreach>;sends:{id:string;draftId:string;contactKey:string;channel:OutreachChannel;text:string;sentAt:string;recordedAt:string;recordedBy:string;monitoringVersion?:number}[]};
 export type DraftSupport={label:string;claim:string;sourceUrl:string|null;approvedBy:string;approvedAt:string};
 export type LiveDraft={id:string;text:string;model:string;responseId:string;createdAt:string;invalidated:boolean;referenceId:string|null;referenceVersion:number|null;contactKey?:string;channel?:OutreachChannel;warm?:boolean;version?:number;parentId?:string|null;characterLimit?:number;support?:DraftSupport[];approvedBy?:string|null;approvedAt?:string|null};
 export const characterCount=(text:string)=>Array.from(text).length;

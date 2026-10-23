@@ -1,0 +1,18 @@
+# Example for a persistent Linux deployment. Replace paths to match the app host.
+[Unit]
+Description=EVOX protected overdue-status scheduler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=evox
+WorkingDirectory=/srv/evox
+EnvironmentFile=/etc/evox/monitor.env
+ExecStart=/usr/bin/node /srv/evox/scripts/monitor-scheduler.mjs
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
