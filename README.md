@@ -59,3 +59,7 @@ See `docs/openai-integration.md` for setup, tests and the live-connection verifi
 ### Live AI task services
 
 The server adapter separates market/company research, public contact discovery, industry/reference matching and approved drafting. Configure `OPENAI_RESEARCH_MODEL`, `OPENAI_CONTACT_MODEL`, `OPENAI_MATCH_MODEL` and `OPENAI_DRAFT_MODEL`; each defaults to `gpt-4.1-mini`. Run `npm run openai:check` for sanitized live connection and web-search outcomes. See `docs/openai-integration.md` for API schemas, limits and prototype authentication constraints. Suggestions require human review and do not replace the visibly labelled fixture records automatically.
+
+### Live market research and qualification
+
+Open GM Target Profile to edit the live mandatory criteria, signal dates, technology preferences and exclusions. In Market Insights and Prospect Shortlist, run live research as GM, then review public-source passages as GM or BDR. Only verified eligible companies are ranked; missing mandatory facts stay in Needs Verification. Progress, explicit failures and retry controls are persisted. See `docs/live-market-research.md` for provenance, currency/year handling, scoring and verification rules. Live results remain separate from the labelled fixture outreach workflow.
