@@ -87,6 +87,9 @@ export function validateGenerated(text:string,input:ApprovedDraftInput){
  if(!input.relationshipHistory&&/\bwe (?:met|spoke|discussed|worked)|\bour (?:meeting|conversation|discussion)|\bas you mentioned/i.test(text))throw new OpenAIIntegrationError('invalid_output','Draft asserted unsupported relationship history.',422);
  const approvedFacts=[input.approvedClaim??'',input.relationshipHistory??''].join(' ');
  for(const technology of text.match(/\b(?:SAP|Oracle|Excel|spreadsheets?)\b/gi)??[])if(!approvedFacts.toLowerCase().includes(technology.toLowerCase()))throw new OpenAIIntegrationError('invalid_output','Draft included unsupported technology details.',422);
+ // Numeric facts can be written as words. Remove only the exact approved claim before checking added assertions.
+ const unapproved=input.approvedClaim?text.split(input.approvedClaim).join(''):text;
+ if(/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|half|quarter)\b[\s-]*(?:percent|per\s+cent|percentage|times|fold)\b/i.test(unapproved)||/\b(?:customers?|clients?)\b.{0,80}\b(?:saved|achieved|reduced|increased|cut|boosted|improved|delivered)\b|\b(?:saved|reduced|increased|boosted)\b.{0,80}\b(?:customers?|clients?)\b/i.test(unapproved))throw new OpenAIIntegrationError('invalid_output','Draft added an unsupported customer result or numerical claim, including a number written as words.',422);
  const allowed=[input.contactName,input.company,input.approvedClaim||'',input.relationshipHistory||''].join(' ');
  for(const number of text.match(/\d+(?:[.,]\d+)*(?:%|x)?/g)||[])if(!allowed.includes(number))throw new OpenAIIntegrationError('invalid_output','Generated draft included an unsupported numerical claim.',422);
 }

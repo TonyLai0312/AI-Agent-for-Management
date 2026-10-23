@@ -1,3 +1,5 @@
+import {createHash} from 'node:crypto';
+import {accountMode} from './auth-mode';
 import {PGlite} from '@electric-sql/pglite';
 import {mkdirSync} from 'node:fs';
 import path from 'node:path';
@@ -8,6 +10,7 @@ const globalDb=globalThis as unknown as {evoxDB?:Promise<PGlite>};
 export async function db(){
  if(!globalDb.evoxDB) globalDb.evoxDB=(async()=>{const dir=process.env.EVOX_DB_PATH||path.join(process.cwd(),'.data','evox-postgres');mkdirSync(path.dirname(dir),{recursive:true});const pg=new PGlite(dir);await pg.waitReady;
  await pg.exec(`CREATE TABLE IF NOT EXISTS campaigns(id text PRIMARY KEY, is_demo boolean NOT NULL DEFAULT true, data jsonb NOT NULL);
+ CREATE TABLE IF NOT EXISTS account_sessions(id text PRIMARY KEY, role text NOT NULL CHECK(role IN ('GM','BDR')),credential_version text NOT NULL,expires_at timestamptz NOT NULL);
  CREATE TABLE IF NOT EXISTS demo_sessions(id text PRIMARY KEY, role text NOT NULL CHECK(role IN ('GM','BDR')));`);
  for(const table of collections)await pg.exec(`CREATE TABLE IF NOT EXISTS ${table}(id text PRIMARY KEY, campaign_id text NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE, data jsonb NOT NULL); CREATE INDEX IF NOT EXISTS ${table}_campaign ON ${table}(campaign_id);`);
  await pg.exec(`CREATE UNIQUE INDEX IF NOT EXISTS alerts_once ON alerts(campaign_id,(data->>'sendId')); CREATE UNIQUE INDEX IF NOT EXISTS sends_draft_once ON sends(campaign_id,(data->>'draftId'));`);
@@ -27,7 +30,11 @@ export async function save(tx:Queryable,s:DemoState){
 }
 let queue:Promise<unknown>=Promise.resolve();
 export function serial<T>(fn:()=>Promise<T>):Promise<T>{const job=queue.then(fn,fn);queue=job.catch(()=>{});return job;}
-export async function sessionRole(id:string|undefined):Promise<Role|null>{if(!id)return null;const pg=await db();const r=await pg.query<{role:Role}>('SELECT role FROM demo_sessions WHERE id=$1',[id]);return r.rows[0]?.role??null;}
+export async function sessionRole(id:string|undefined):Promise<Role|null>{if(!id)return null;const pg=await db();if(accountMode()){
+ const row=(await pg.query<{role:Role;credential_version:string}>('SELECT role,credential_version FROM account_sessions WHERE id=$1 AND expires_at>now()',[createHash('sha256').update(id).digest('hex')])).rows[0];if(!row)return null;
+ const {accountsConfigured,credentialVersion}=await import('./server/accounts');return accountsConfigured()&&row.credential_version===credentialVersion(row.role)?row.role:null;
+ }const r=await pg.query<{role:Role}>('SELECT role FROM demo_sessions WHERE id=$1',[id]);return r.rows[0]?.role??null;}
+
 
 export async function resetDemo(tx:Queryable,current:DemoState){
  const row=await tx.query<{is_demo:boolean}>('SELECT is_demo FROM campaigns WHERE id=$1',[DEMO_ID]);

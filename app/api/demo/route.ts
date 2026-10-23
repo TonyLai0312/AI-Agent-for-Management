@@ -1,3 +1,4 @@
+import {accountMode} from '@/lib/auth-mode';
 import {cookies} from 'next/headers';
 import {db,load,save,serial,sessionRole,resetDemo} from '@/lib/demo-db';
 import {actionSchema,applyAction,RuleError} from '@/lib/demo-service';
@@ -7,7 +8,7 @@ import {prepareOpenAI,finishOpenAI} from '@/lib/server/openai-workflow';
 import {DEMO_ID} from '@/lib/demo-fixtures';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-export async function GET(){try{const pg=await db();const state=await serial(()=>load(pg));const role=await sessionRole((await cookies()).get('evox-demo-session')?.value);return Response.json({state,role},{headers:{'Cache-Control':'no-store'}})}catch(error){console.error(error);return Response.json({error:'Demo database unavailable'},{status:503})}}
+export async function GET(){try{if(accountMode()&&!await sessionRole((await cookies()).get('evox-demo-session')?.value))return Response.json({error:'Sign in required.'},{status:401});const pg=await db();const state=await serial(()=>load(pg));const role=await sessionRole((await cookies()).get('evox-demo-session')?.value);return Response.json({state,role},{headers:{'Cache-Control':'no-store'}})}catch(error){console.error({event:"operation_failed"});return Response.json({error:'Demo database unavailable'},{status:503})}}
 export async function POST(req:Request){
  try{
  const origin=req.headers.get('origin');if(origin&&new URL(origin).host!==req.headers.get('host'))return Response.json({error:'Cross-origin mutations rejected'},{status:403});
@@ -30,5 +31,5 @@ export async function POST(req:Request){
  }
  const next=applyAction(current,a,role);await save(tx,next);return next;
  }));return Response.json({state,role});
- }catch(error){if(error instanceof OpenAIIntegrationError)return Response.json({error:error.message,code:error.code},{status:error.status});if(error instanceof RuleError)return Response.json({error:error.message},{status:error.status});if(error instanceof SyntaxError)return Response.json({error:'Invalid JSON'},{status:400});console.error(error);return Response.json({error:'Database operation failed; no partial change was saved'},{status:500})}
+ }catch(error){if(error instanceof OpenAIIntegrationError)return Response.json({error:error.message,code:error.code},{status:error.status});if(error instanceof RuleError)return Response.json({error:error.message},{status:error.status});if(error instanceof SyntaxError)return Response.json({error:'Invalid JSON'},{status:400});console.error({event:"operation_failed"});return Response.json({error:'Database operation failed; no partial change was saved'},{status:500})}
 }

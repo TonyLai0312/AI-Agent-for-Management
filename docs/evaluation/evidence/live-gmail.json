@@ -1,0 +1,16 @@
+{
+  "kind": "live-gmail-test-attempt",
+  "fixtureSubstitution": false,
+  "test": "gmail-overdue-flow",
+  "ok": false,
+  "provider": "gmail",
+  "namespace": "test",
+  "sendId": "a9886396-ecb6-4bef-94b0-4dd553c41be4",
+  "state": "failed",
+  "providerId": null,
+  "code": "configuration",
+  "message": "GMAIL_ACCESS_TOKEN is not configured. Provide an authorized Gmail OAuth access token.",
+  "deliveryConfirmed": false,
+  "evidence": [],
+  "checkedAt": "2026-10-23T07:30:30.344Z"
+}

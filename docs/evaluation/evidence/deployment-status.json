@@ -1,0 +1,18 @@
+{
+  "kind": "remote-deployment-verification",
+  "checkedAt": "2026-10-23T07:33:19.398Z",
+  "base": null,
+  "phase": "verify",
+  "checks": [
+    {
+      "name": "Verification execution",
+      "expected": "configured deployed service",
+      "actual": {
+        "code": "verification_configuration_missing"
+      },
+      "pass": false
+    }
+  ],
+  "remoteDeploymentPerformed": false,
+  "reason": "User has no Render account/service yet; no hosting identity or URL configured."
+}

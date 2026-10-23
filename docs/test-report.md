@@ -1,5 +1,6 @@
 # EVOX Prospect Copilot — demo verification report
 
+Current expanded evaluation: [acceptance cases, live failures and hosting preparation](evaluation/README.md). The material below records the earlier fixture baseline and is retained as historical evidence.
 Date: 23 October 2026 (Singapore). Version: 0.2.0. Tested using Node 24.19.0, Next.js 16.4.2, PGlite 0.5.11, Playwright 1.64.1 and installed Chromium. All records are fixtures. These results evaluate the demo's workflow and storage, not AI research accuracy or business productivity.
 
 ## Subsequent OpenAI integration

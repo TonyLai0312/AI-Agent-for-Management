@@ -1,0 +1,239 @@
+
+> evox-prospect-copilot@0.2.0 test
+> node --import tsx tests/workflow.test.ts && node --import tsx tests/demo-service.test.ts && node --import tsx tests/demo-db.test.ts && node --import tsx tests/openai.test.ts && node --import tsx tests/ai-tasks.test.ts && node --import tsx tests/market-research.test.ts && node --import tsx tests/research-store.test.ts && node --import tsx tests/contact-discovery.test.ts && node --import tsx tests/prospecting.test.ts && node --import tsx tests/outreach.test.ts && node --import tsx tests/monitoring.test.ts && node --import tsx tests/gmail-alerts.test.ts && node --import tsx tests/factual-guardrails.test.ts && node --import tsx tests/accounts.test.ts
+
+✔ five working days skips weekends and respects Singapore local date (1.396497ms)
+✔ holidays extend due time (0.244266ms)
+✔ alert appears at deadline once; status update resolves it and prevents recurrence (0.769567ms)
+✔ pending is a recorded status, so no alert even without acceptance (0.207587ms)
+✔ wrong contact invalidates approvals and drafts; decline stops (0.236291ms)
+✔ ranking enforces geography, scale, industry, exclusions and period, caps at ten (8.402738ms)
+✔ draft and send gates reject incomplete approvals, length overflow and future times (0.649182ms)
+✔ deadline snapshot survives later holiday edits (calendar regression) (0.237243ms)
+✔ reference draft preserves approved entity scope and omits deck metrics (0.394065ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.256632
+✔ server rejects skipped gates and wrong roles (6.50221ms)
+✔ overlong draft can be revised but cannot be approved or sent (1.800292ms)
+✔ evidence revision invalidates approval and drafts; history remains (0.849195ms)
+✔ missing contact and conflicting industry require resolution; logo cannot support claim (0.673157ms)
+✔ alert once, pending update resolves alert, decline stops and wrong contact reopens discovery (0.77651ms)
+✔ version checks reject stale writes and sending twice is blocked (0.57283ms)
+✔ reference matching respects confirmed industry (0.42314ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28.354477
+Verified disk persistence for tables: campaigns, companies, contacts, evidence, approvals, drafts, sends, updates, alerts, events
+✔ PostgreSQL persists every record class across close/reopen; safe reset preserves non-demo campaigns (2682.917201ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2689.065776
+{"event":"openai_usage","task":"connection","outcome":"success","durationMs":1,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"incomplete","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+✔ minimal connection check uses Responses, store false and constant input (2.269372ms)
+✔ structured drafting keeps exact approved claim and records provenance (6.213594ms)
+✔ malformed, incomplete, overlong, changed claims, links and invented metrics are rejected (8.578273ms)
+✔ SDK credential errors are sanitized; no raw message or headers returned (1.095407ms)
+✔ missing configuration fails clearly without making a request (0.346397ms)
+✔ gate validation happens before AI work; preparation does not modify saved state (4.650943ms)
+✔ result never auto-approves and concurrent edits reject stale AI output (0.918617ms)
+✔ draft and research model overrides are independent (0.277299ms)
+✔ research requires a completed search and genuine citation annotations (1.110465ms)
+✔ billing quota is distinguished from authentication without exposing provider text (0.390079ms)
+✔ authentication diagnostics retain allowlisted provider metadata and never masked credentials (0.465119ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.555046
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"connection","outcome":"refused","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"connection","outcome":"incomplete","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"connection","outcome":"request_too_large","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_validation","task":"matching","outcome":"invalid_output"}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_validation","task":"matching","outcome":"invalid_output"}
+✔ market discovery preserves unknown mandatory facts and returns pending verification (15.210571ms)
+✔ invalid discovery criteria are rejected before any provider request (0.48143ms)
+✔ contact discovery requires sourced identity or explicit manual search (5.492887ms)
+✔ matching preserves exact catalog claim and rejects invented IDs and entity changes (6.491243ms)
+✔ refusals and incomplete outputs fail explicitly without exposing refusal content (0.933966ms)
+✔ malformed structured JSON and schema mismatch fail without a fallback (2.35434ms)
+✔ request limiter enforces concurrency, rolling minute cap and idempotent release (0.258844ms)
+✔ usage logs omit request and response content (0.323304ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.514415
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+✔ live initial profile separates scale/country/industry gates from preference window (1.767193ms)
+✔ eligible ranking uses exact 30/20/25/15/10 weights and separate confidence (2.761511ms)
+✔ missing or unverified mandatory facts cannot be ranked; proven failures are ineligible (0.781231ms)
+✔ financial currency/year/annual period are required; non-USD conversion needs dated verified evidence (1.307905ms)
+✔ market trends never fill company-specific gaps; out-of-window signals receive no score (0.307194ms)
+✔ deduplication retains passages, applies alias exclusions and preserves separate legal entities (1.648431ms)
+✔ conflicting mandatory claims go to verification until rejected; newest reporting year is retained (0.527456ms)
+✔ only eligible companies enter top ten and fewer results are never padded (1.028502ms)
+✔ research extraction retains source metadata, ignores web instructions and starts every claim unverified (28.444265ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.044329
+✔ research progress, failures, retry snapshots and reviews persist independently of demo reset (3021.623192ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3028.491266
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":1,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":1,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":1,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"contacts","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"research","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"matching","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+✔ public discovery retains required fields, flags old sources and never auto-verifies (15.123943ms)
+✔ invented profile URLs or names absent from a supporting passage fail explicitly (4.664063ms)
+✔ ambiguous entities and undated sources remain flagged (3.247416ms)
+✔ cited company LinkedIn fallback remains unverified; missing page creates a manual search task (5.188582ms)
+✔ reference retrieval creates only source-backed proposals from EVOX stories (6.326469ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.858494
+✔ selected-company contact, industry and evidence gates persist; no-reference works; edits revoke drafts (2813.257516ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2819.316587
+✔ outreach routes, immutable versions, approvals, evidence, history and manual sends are enforced server-side (3110.696247ms)
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+{"event":"openai_usage","task":"draft","outcome":"success","durationMs":0,"inputTokens":null,"outputTokens":null}
+✔ overlong output is rewritten in bounded Responses calls without truncation; warm input requires history (8.633608ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3126.603848
+✔ five working days preserves local wall time, calendar exceptions and DST, independently of machine timezone (25.477884ms)
+✔ admin/scheduler authorization fails closed, including demo-role cookies and test clock isolation (13.688842ms)
+✔ persistent monitoring claims once, freezes deadlines, rechecks status, reconciles ambiguous sends and never repeats escalation (3103.21732ms)
+✔ legacy explicit pending updates migrate as satisfied, while automatic pending never becomes a checked update (1814.181676ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4963.882512
+✔ Gmail draft, final recipient check and provider evidence use the frozen payload without a delivery claim (12.31718ms)
+✔ Gmail authentication errors retain status and redact raw body, token and headers (1.266407ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.176742
+✔ regression: the exact before-evaluation invented saving is rejected when written as words (1.890983ms)
+✔ unsupported quantified and unquantified customer outcomes are blocked beyond an approved exact claim (0.833887ms)
+✔ neutral role relevance and exact genuinely approved claim remain usable (0.231894ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.641555
+✔ hosted accounts enforce assigned roles, hashed sessions, expiry, rotation, logout and persistent throttling (3832.964866ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3839.632083

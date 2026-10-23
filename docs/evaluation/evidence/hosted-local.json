@@ -1,0 +1,124 @@
+{
+  "kind": "local-hosted-mode-preflight",
+  "remoteDeployment": false,
+  "actualProvidersTested": false,
+  "executedAt": "2026-10-23T07:41:04.600Z",
+  "summary": {
+    "passed": 18,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "Anonymous /api/demo",
+      "expected": "401 or 403",
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "name": "Anonymous /api/research",
+      "expected": "401 or 403",
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "name": "Anonymous /api/prospects",
+      "expected": "401 or 403",
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "name": "Anonymous /api/monitoring",
+      "expected": "401 or 403",
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "Anonymous /api/openai",
+      "expected": "401 or 403",
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "name": "Public role-switch bypass",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "Assigned GM login",
+      "expected": "GM",
+      "actual": "GM",
+      "pass": true
+    },
+    {
+      "name": "Assigned BDR login",
+      "expected": "BDR",
+      "actual": "BDR",
+      "pass": true
+    },
+    {
+      "name": "Login body cannot assign a role",
+      "expected": 400,
+      "actual": 400,
+      "pass": true
+    },
+    {
+      "name": "BDR cannot edit GM research profile",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "GM cannot perform BDR prospect mutation",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "GM session cannot impersonate scheduler",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "GM session cannot advance admin clock",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "name": "Hosted UI hides arbitrary role selector",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "name": "Supervisor runs authenticated scheduler HTTP tick",
+      "expected": "at least one heartbeat",
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "name": "Database survives complete app/scheduler restart",
+      "expected": [
+        "EXPLICIT_HOSTED_PERSISTENCE_EVALUATION"
+      ],
+      "actual": [
+        "EXPLICIT_HOSTED_PERSISTENCE_EVALUATION"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Assigned session survives restart",
+      "expected": "GM",
+      "actual": "GM",
+      "pass": true
+    },
+    {
+      "name": "Logout revokes stored session",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    }
+  ]
+}

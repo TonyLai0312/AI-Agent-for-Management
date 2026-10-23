@@ -1,0 +1,33 @@
+
+> evox-prospect-copilot@0.2.0 test:browser:isolated
+> node scripts/test-browser-isolated.mjs
+
+
+Running 16 tests using 1 worker
+
+(node:25166) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/workflow.spec.ts:10:5 › complete six-screen click-through, evidence invalidation, send and late update (6.3s)
+  ✓   2 tests/browser/workflow.spec.ts:22:5 › click-through handles missing contact, industry conflict, logo-only, pending email, decline and wrong contact (8.7s)
+  ✓   3 tests/browser/workflow.spec.ts:31:5 › server rejects bypasses and stale writes, persists revisions, and enforces role permissions (1.6s)
+  ✓   4 tests/browser/workflow.spec.ts:45:5 › safe reset click-through restores five fixtures and clears only demo history (1.7s)
+  ✓   5 tests/browser/workflow.spec.ts:48:5 › concurrent alert checks remain once-only and cross-origin mutations are rejected (211ms)
+  -   6 tests/browser/workflow.spec.ts:52:5 › OpenAI configuration is credential-free; missing-key failures preserve the campaign
+  ✓   7 tests/browser/workflow.spec.ts:61:5 › AI task API enforces roles, schemas and body limits without calling the provider (199ms)
+  ✓   8 tests/browser/workflow.spec.ts:69:5 › live profile distinguishes mandatory criteria from preferences and persists campaign exclusions (2.7s)
+  ✓   9 tests/browser/workflow.spec.ts:80:5 › live research polls progress during the request and exposes failure and retry without fixture fallback (2.3s)
+  ✓  10 tests/browser/workflow.spec.ts:91:5 › source review moves a company from Needs Verification to eligible without mixing market trends (2.2s)
+  ✓  11 tests/browser/workflow.spec.ts:120:5 › BDR selects a qualified live company then manually confirms contact, industry and no-reference path (1.9s)
+  ✓  12 tests/browser/workflow.spec.ts:132:5 › BDR approves exact customer scope; uploading a revision returns it to proposed and revokes drafting (1.4s)
+  ✓  13 tests/browser/workflow.spec.ts:142:5 › contact lookup failure is explicit and preserves manual search and prior confirmations (1.1s)
+  ✓  14 tests/browser/workflow.spec.ts:148:5 › live outreach status prevents duplicate invitations and routes declined or wrong contacts (1.3s)
+  ✓  15 tests/browser/workflow.spec.ts:156:5 › live draft editor counts personalised text, creates versions and requires approval before copy (1.3s)
+  ✓  16 tests/browser/workflow.spec.ts:164:5 › monitoring admin and protected scheduler reject demo-role access; isolated clock cannot change live deadlines (1.1s)
+
+  1 skipped
+  15 passed (36.0s)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

@@ -1,3 +1,4 @@
+import {accountMode} from '@/lib/auth-mode';
 import {cookies} from 'next/headers';
 import {z} from 'zod';
 import {sessionRole} from '@/lib/demo-db';
@@ -12,7 +13,7 @@ const bodySchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('review'),version:z.number().int().positive(),evidenceId:z.string().uuid(),status:z.enum(['verified','rejected','unverified']),note:z.string().trim().min(10).max(1000),confirmed:z.literal(true)}).strict(),
 ]);
 const headers={'Cache-Control':'no-store'};
-export async function GET(){try{return Response.json(await researchWorkspace(),{headers});}catch{return Response.json({error:'Research storage unavailable.'},{status:503,headers});}}
+export async function GET(){try{if(accountMode()&&!await sessionRole((await cookies()).get('evox-demo-session')?.value))return Response.json({error:'Sign in required.'},{status:401,headers});return Response.json(await researchWorkspace(),{headers});}catch{return Response.json({error:'Research storage unavailable.'},{status:503,headers});}}
 export async function POST(req:Request){try{
  const origin=req.headers.get('origin');if(origin&&new URL(origin).host!==req.headers.get('host'))throw new OpenAIIntegrationError('forbidden','Cross-origin mutations rejected.',403);
  const role=await sessionRole((await cookies()).get('evox-demo-session')?.value);if(!role)throw new OpenAIIntegrationError('unauthenticated','Choose a demo identity before using this restricted prototype.',401);

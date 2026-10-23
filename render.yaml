@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: evox-prospect-copilot
+    runtime: node
+    plan: standard
+    region: singapore
+    branch: evox-prototype
+    numInstances: 1
+    buildCommand: npm ci && npm run build
+    startCommand: node scripts/start-hosted.mjs
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"
+    disk:
+      name: evox-data
+      mountPath: /var/data/evox
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: EVOX_AUTH_MODE
+        value: accounts
+      - key: EVOX_DB_PATH
+        value: /var/data/evox/pg
+      - key: EVOX_ENABLE_MONITOR_TESTS
+        value: "false"
+      - key: EVOX_SCHEDULER_TEST_ONCE
+        value: "false"
+      - key: BDR_TIMEZONE
+        value: Asia/Singapore
+      - key: CRON_SECRET
+        generateValue: true
+      - key: EVOX_ADMIN_SECRET
+        generateValue: true
+      - key: GM_EMAIL
+        sync: false
+      - key: GM_PASSWORD_HASH
+        sync: false
+      - key: BDR_EMAIL
+        sync: false
+      - key: BDR_PASSWORD_HASH
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_DRAFT_MODEL
+        value: gpt-4.1-mini
+      - key: OPENAI_RESEARCH_MODEL
+        value: gpt-4.1-mini
+      - key: GMAIL_ACCESS_TOKEN
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EVOX_TEST_RECIPIENT
+        sync: false

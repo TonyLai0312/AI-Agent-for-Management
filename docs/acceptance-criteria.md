@@ -1,5 +1,6 @@
 # Demo acceptance criteria
 
+Current expanded evaluation: [acceptance cases, live failures and hosting preparation](evaluation/README.md). The material below records the earlier fixture baseline and is retained as historical evidence.
 User's complete fixture workflow, version 0.2. This supersedes the browser-local shell checklist. See test-report.md for actual runs and failures corrected.
 
 | Requirement | Acceptance condition | Coverage |

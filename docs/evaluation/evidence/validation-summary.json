@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-10-23T07:46:04.712357+00:00",
+  "fixtureAcceptanceBefore": {
+    "passed": 9,
+    "failed": 1,
+    "total": 10
+  },
+  "fixtureAcceptanceAfter": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10
+  },
+  "regression": {
+    "passed": 64,
+    "failed": 0
+  },
+  "browserFixtureRun": {
+    "startTime": "2026-10-23T07:40:50.145Z",
+    "duration": 35959.194,
+    "expected": 15,
+    "skipped": 1,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserMissingKeyRun": {
+    "startTime": "2026-10-23T07:41:04.785Z",
+    "duration": 8611.906,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "localHostedPreflight": {
+    "passed": 18,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "productionBuild": "passed",
+  "slidePDFPages": 2,
+  "remoteDeployment": "not performed; user has no Render service",
+  "liveAI": "two real requests failed with HTTP 401",
+  "liveGmail": "configuration-blocked; no Gmail request or send evidence"
+}

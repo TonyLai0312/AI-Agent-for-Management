@@ -1,0 +1,19 @@
+flowchart TB
+  subgraph HOST["Render single Node service + persistent disk — PREPARED, NOT DEPLOYED"]
+    UI["GM / BDR browser UI\nHosted login; demo fixtures labelled"]
+    AUTH["Server authentication\nScrypt password hashes; expiring hashed sessions\nAssigned roles; demo role switching disabled"]
+    API["Next.js server routes\nGM profile/research; BDR selection/contact/evidence/draft\nUntrusted retrieved content is data"]
+    GATE["Human confirmation gates\nContact → industry → approved reference / no reference\nDraft versions → final approval → copy"]
+    DB[("One PGlite owner\n/var/data/evox/pg\nSources, approvals, drafts, manual sends, calendars, outbox, audit")]
+    WORKER["HTTP scheduler sibling process\nCRON_SECRET; one-minute checks\nLive clock; isolated admin-only test clock"]
+    OUTBOX["Protected overdue jobs\nAtomic claim + latest-status recheck\nFrozen Gmail draft + dispatch marker; reconcile uncertainty"]
+    UI --> AUTH --> API --> GATE
+    API <--> DB
+    GATE <--> DB
+    WORKER --> OUTBOX <--> DB
+  end
+  WEB["Public pages / BDR materials\nEvidence and quotations, never instructions"] --> API
+  API --> AI["OpenAI SDK / Responses API\nSeparate research, contact discovery, matching and drafting\nModels configurable; latest live tests: HTTP 401"]
+  GATE --> HUMAN["BDR sends outreach manually\nLinkedIn / email outside EVOX\nActual send time recorded separately"]
+  HUMAN --> DB
+  OUTBOX --> GMAIL["Gmail API — configured test recipient only\nProvider acceptance evidence ≠ recipient delivery\nLatest real test: blocked by missing configuration"]
