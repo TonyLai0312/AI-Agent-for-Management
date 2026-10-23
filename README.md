@@ -1,2 +1,47 @@
-# AI-Agent-for-Management
-Group assignment
+# EVOX Prospect Copilot — database-backed demo
+
+Six-screen EMBA prototype: target profile, synthetic market insights/shortlist, contact/industry review, customer evidence approval, outreach drafting, and follow-up/GM alerts. All company/contact research is explicitly fictional. No credentials required.
+
+## Run
+
+Node 20.9+ (tested with Node 24.19.0).
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://localhost:3000 and choose **BDR** or **GM** in the demo identity selector. The app initializes embedded PostgreSQL (PGlite) at `.data/evox-postgres` automatically. Keep that directory to preserve records. Run only one app process against this database directory. Do not deploy this shared, switchable-identity demo as a production CRM.
+
+For a production build of the demo:
+
+```sh
+npm run build
+npm start
+```
+
+## Demo walkthrough
+
+1. As GM, review/save target criteria. Switch to BDR and select Meridian Foods.
+2. Confirm its simulated contact and industry. Approve the Wei Chuan passage, or choose no customer claim.
+3. Generate a template, edit/save a revision, approve it and record a simulated manual send time at or before the visible clock.
+4. Edit approved evidence to demonstrate automatic approval revocation and downstream draft invalidation. Reapprove and regenerate before sending.
+5. As GM, open the tracker and check overdue tasks. The seeded Pacific Pharma invitation is overdue. Repeated checks create only one durable demo alert.
+6. As BDR, record Accepted to resolve the alert and generate a LinkedIn message. Pending routes to email (verify recipient before recording send), Declined stops drafting, Wrong contact returns to identity review.
+7. Try Straits Chemicals (manual-search task), Lotus Consumer (industry conflict), and Archipelago Retail (logo without story).
+8. As GM, type `RESET DEMO` on Target Profile to restore only this demo campaign. Export demo records before reset if desired.
+
+The simulated clock starts at **23 October 2026, 10:00 SGT**. Working days are Monday–Friday excluding the GM's configured ISO holiday list. Advancing the clock does not send any email; click Check overdue tasks to simulate the monitor's tick. Each deadline is frozen when the send is recorded.
+
+## Verify
+
+```sh
+npm test
+npm run typecheck
+# With the app already running:
+npm run test:browser
+```
+
+Browser tests use `/usr/bin/chromium` by default. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to your Chromium binary, or install Playwright Chromium and remove `executablePath` from the config. Browser tests intentionally reset the demo campaign; do not point them at a live system. Screenshots and JSON test results go to ignored `work/`.
+
+See `docs/build-plan.md`, `docs/acceptance-criteria.md` and `docs/test-report.md`. Runtime table creation is in `lib/demo-db.ts`. `db/production-schema-proposal.sql` is an unused proposal for a future hosted backend, not the current migration.

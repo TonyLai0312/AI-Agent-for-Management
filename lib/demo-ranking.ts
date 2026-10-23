@@ -1,0 +1,5 @@
+import type {Company,Profile} from './demo-types';
+const parts=(v:string)=>v.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+export function fixtureScore(c:Company,p:Profile){return (parts(p.industries).includes(c.industry.toLowerCase())?30:0)+Math.min(20,Math.floor(c.employees/100))+(c.signalDate>=p.start&&c.signalDate<=p.end?25:0)+(parts(p.technologies).includes(c.technology.toLowerCase())?15:0)+(parts(p.countries).includes(c.country.toLowerCase())?10:0)}
+export function fixtureEligible(c:Company,p:Profile){return parts(p.countries).includes(c.country.toLowerCase())&&parts(p.industries).includes(c.industry.toLowerCase())&&c.employees>=p.employees&&c.revenue>=p.revenue&&c.signalDate>=p.start&&c.signalDate<=p.end&&!parts(p.exclusions).some(x=>`${c.name} ${c.industry}`.toLowerCase().includes(x))}
+export const referenceIndustries:Record<string,string[]>={'evidence-qualified':['Food & Beverage Manufacturing'],'evidence-conflict':['FMCG'],'evidence-logo':['Grocery Retail'],'evidence-overdue':['Pharmaceutical']};

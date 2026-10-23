@@ -1,0 +1,16 @@
+export type Role = 'GM'|'BDR';
+export type Status = 'accepted'|'checked/pending'|'declined'|'wrong contact';
+export type Channel = 'connection'|'linkedin'|'email';
+export type Profile = {countries:string;industries:string;employees:number;revenue:number;technologies:string;exclusions:string;start:string;end:string;limit:number;holidays:string};
+export type Campaign = {id:string;name:string;demo:true;version:number;profile:Profile;clock:string;createdAt:string};
+export type Company = {id:string;name:string;country:string;industry:string;employees:number;revenue:number;technology:string;signal:string;signalDate:string;score:number;selected:boolean;fixture:string;industryOptions:string[];industryReason:string;contactId:string|null;decision:string;confidence:string};
+export type Contact = {id:string;companyId:string;name:string;title:string;entity:string;source:string;checkedAt:string;verified:boolean;email:string;emailVerified:boolean};
+export type Evidence = {id:string;companyId:string;customer:string;entity:string;source:string;passage:string;claim:string;logoOnly:boolean;version:number};
+export type Approval = {id:string;companyId:string;kind:'contact'|'industry'|'evidence';active:boolean;evidenceId:string|null;evidenceVersion:number|null;at:string;actor:Role;note:string};
+export type Draft = {id:string;companyId:string;contactId:string;channel:Channel;text:string;version:number;approved:boolean;invalidated:boolean;at:string;approvalAt:string|null;context:string[];evidenceId:string|null;evidenceVersion:number|null};
+export type Send = {id:string;companyId:string;contactId:string;draftId:string;channel:Channel;text:string;sentAt:string;recordedAt:string;dueAt:string|null;status:Status|null;updatedAt:string|null};
+export type Update = {id:string;companyId:string;sendId:string;status:Status;at:string};
+export type Alert = {id:string;companyId:string;sendId:string;createdAt:string;resolvedAt:string|null;delivery:'demo-recorded';owner:string;contact:string;deadline:string;recordUrl:string};
+export type Event = {id:string;at:string;actor:Role;action:string;companyId:string|null;detail:string};
+export type DemoState = {campaign:Campaign;companies:Company[];contacts:Contact[];evidence:Evidence[];approvals:Approval[];drafts:Draft[];sends:Send[];updates:Update[];alerts:Alert[];events:Event[]};
+export const screens=['GM Target Profile','Market Insights and Prospect Shortlist','Contact and Industry Review','Customer Evidence Approval','Outreach Draft','Follow-up Tracker and GM Alerts'];
