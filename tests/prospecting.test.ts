@@ -34,7 +34,7 @@ test('selected-company contact, industry and evidence gates persist; no-referenc
   await run('confirm-contact',{contactId,...review,currentRoleConfirmed:true,entityConfirmed:true});assert.equal(w.companies[0].contactId,contactId);assert.equal(w.companies[0].contacts[0].confirmedBy,'Test BDR');
   await assert.rejects(()=>runDraft(w.version,selectedId,generated),/industry/);
   await run('confirm-industry',{industry:c.industry.value,...review,confirmed:true});await assert.rejects(()=>runDraft(w.version,selectedId,generated),/reference/);
-  await run('reference-decision',{referenceId:null,...review,confirmed:true});assert.equal(referenceForDraft(w.companies[0],w.references),null);w=await runDraft(w.version,selectedId,generated);assert.equal(calls,1);assert.equal(w.companies[0].drafts.length,1);
+  await run('reference-decision',{referenceId:null,...review,confirmed:true});await run('outreach-status',{status:'new',...review,confirmed:true});assert.equal(referenceForDraft(w.companies[0],w.references),null);w=await runDraft(w.version,selectedId,generated);assert.equal(calls,1);assert.equal(w.companies[0].drafts.length,1);
   const ref=w.references.find(r=>r.id.includes('weichuan'))!;
   await assert.rejects(()=>run('reference-decision',{referenceId:ref.id,...review,confirmed:true}),/approved detailed reference/);
   await run('review-reference',{referenceId:ref.id,status:'approved',...review,supportConfirmed:true,scopeConfirmed:true});assert.equal(w.references.find(r=>r.id===ref.id)?.approver,'Test BDR');

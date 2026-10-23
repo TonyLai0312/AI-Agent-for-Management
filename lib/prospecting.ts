@@ -15,7 +15,7 @@ export type ReferenceInput=z.infer<typeof referenceInputSchema>;
 export type GateDecision={kind:'reference';referenceId:string;referenceVersion:number;confirmedBy:string;confirmedAt:string;note:string}|{kind:'no-reference';confirmedBy:string;confirmedAt:string;note:string};
 export type LookupState={status:'idle'|'running'|'completed'|'failed';message:string;startedAt:string|null;finishedAt:string|null;token:string|null;errorCode:string|null;requestId:string|null};
 export const idleLookup=():LookupState=>({status:'idle',message:'Not started',startedAt:null,finishedAt:null,token:null,errorCode:null,requestId:null});
-export type SelectedProspect={id:string;reportId:string;companyId:string;name:string;aliases:string[];country:string;qualifiedIndustry:string;selectedBy:'BDR';selectedAt:string;contacts:LiveContact[];companyPage:ContactPage|null;manualSearchTask:string;discovery:LookupState;contactId:string|null;industry:{value:string;confirmedBy:string;confirmedAt:string;note:string}|null;decision:GateDecision|null;drafts:{id:string;text:string;model:string;responseId:string;createdAt:string;invalidated:boolean;referenceId:string|null;referenceVersion:number|null}[];generation:LookupState};
+export type SelectedProspect={id:string;reportId:string;companyId:string;name:string;aliases:string[];country:string;qualifiedIndustry:string;selectedBy:'BDR';selectedAt:string;contacts:LiveContact[];companyPage:ContactPage|null;manualSearchTask:string;discovery:LookupState;contactId:string|null;industry:{value:string;confirmedBy:string;confirmedAt:string;note:string}|null;decision:GateDecision|null;drafts:LiveDraft[];generation:LookupState;outreach?:OutreachState};
 export type ProspectWorkspace={version:number;companies:SelectedProspect[];references:CustomerReference[];referenceHistory:CustomerReference[];importStatus:LookupState;events:{at:string;actor:string;action:string;companyId:string|null;detail:string}[]};
 export class ProspectRuleError extends Error{constructor(public code:string,message:string,public status=422){super(message);}}
 const requireRule=(value:unknown,message:string)=>{if(!value)throw new ProspectRuleError('gate_blocked',message);};
@@ -40,3 +40,23 @@ export function validateReferenceApproval(reference:CustomerReference){
  requireRule(reference.sourceUrl||reference.materialName,'A source URL or uploaded/pasted material excerpt is required.');
  requireRule(reference.excerpt.trim().length>=10,'A supporting excerpt is required.');
 }
+
+export type OutreachStatus='new'|'accepted'|'checked/pending'|'declined'|'wrong contact';
+export type OutreachChannel='connection'|'linkedin'|'email';
+export type Relationship={text:string;occurredOn:string;confirmedBy:string;confirmedAt:string;note:string};
+export type ContactOutreach={status:OutreachStatus;updatedAt:string;reviewer:string;note:string;history:Relationship|null};
+export type OutreachState={connectionLimit:number;contacts:Record<string,ContactOutreach>;sends:{id:string;draftId:string;contactKey:string;channel:OutreachChannel;text:string;sentAt:string;recordedAt:string;recordedBy:string}[]};
+export type DraftSupport={label:string;claim:string;sourceUrl:string|null;approvedBy:string;approvedAt:string};
+export type LiveDraft={id:string;text:string;model:string;responseId:string;createdAt:string;invalidated:boolean;referenceId:string|null;referenceVersion:number|null;contactKey?:string;channel?:OutreachChannel;warm?:boolean;version?:number;parentId?:string|null;characterLimit?:number;support?:DraftSupport[];approvedBy?:string|null;approvedAt?:string|null};
+export const characterCount=(text:string)=>Array.from(text).length;
+export function outreachState(c:SelectedProspect){return c.outreach??={connectionLimit:300,contacts:{},sends:[]};}
+export function outreachContactKey(c:SelectedProspect){const contact=contactGate(c);return entityKey(contact.name)+'@'+entityKey(contact.entity);}
+export function outreachContact(c:SelectedProspect){const key=outreachContactKey(c);return outreachState(c).contacts[key]??{status:'new' as const,updatedAt:'',reviewer:'',note:'',history:null};}
+export function outreachRoute(c:SelectedProspect):OutreachChannel{
+ const state=outreachContact(c);if(!state.reviewer||!state.updatedAt)throw new ProspectRuleError('status_required','BDR must check existing connection/invitation status before drafting.');if(state.status==='declined')throw new ProspectRuleError('stopped','Contact declined. Outreach stopped.');
+ if(state.status==='wrong contact')throw new ProspectRuleError('rediscovery_required','Wrong contact: return to contact discovery.');
+ if(state.status==='accepted')return 'linkedin';if(state.status==='checked/pending')return 'email';
+ if(outreachState(c).sends.some(s=>s.contactKey===outreachContactKey(c)&&s.channel==='connection'))throw new ProspectRuleError('invitation_exists','Invitation already recorded. Confirm its status; another connection request is blocked.');
+ return 'connection';
+}
+export function currentDraft(c:SelectedProspect,id:string){const draft=c.drafts.find(d=>d.id===id);if(!draft||draft!==c.drafts.at(-1)||draft.invalidated||!draft.channel||draft.contactKey!==outreachContactKey(c)||draft.channel!==outreachRoute(c))throw new ProspectRuleError('stale_draft','Use the latest valid draft for the current contact and status.');return draft;}

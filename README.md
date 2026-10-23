@@ -67,3 +67,5 @@ Open GM Target Profile to edit the live mandatory criteria, signal dates, techno
 ### Selected-company contacts and customer evidence
 
 As BDR, select a qualified live company in the shortlist, then use the live panels on Contact and Industry Review, Customer Evidence Approval and Outreach Draft. Public candidates require explicit current-role/entity confirmation; manual entry and company-page/manual-search fallbacks are supported. Confirm industry next, approve and choose a scoped customer reference or choose no reference, then generate a gated draft. New website/BDR-material evidence remains unapproved; edits revoke dependent decisions. See `docs/contact-evidence-workflow.md` for source metadata, text-excerpt uploads and validation.
+
+Live outreach now includes status-based channel routing, confirmed BDR relationship history, configurable connection length with bounded rewriting, approved-claim provenance, editable draft versions, server-validated approval/copy and separate actual manual-send records. See [outreach drafting](docs/outreach-drafting.md). Sending always happens manually outside EVOX.
