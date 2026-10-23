@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx tests/workflow.test.ts && node --import tsx tests/demo-service.test.ts && node --import tsx tests/demo-db.test.ts && node --import tsx tests/openai.test.ts && node --import tsx tests/ai-tasks.test.ts && node --import tsx tests/market-research.test.ts && node --import tsx tests/research-store.test.ts",
+    "test": "node --import tsx tests/workflow.test.ts && node --import tsx tests/demo-service.test.ts && node --import tsx tests/demo-db.test.ts && node --import tsx tests/openai.test.ts && node --import tsx tests/ai-tasks.test.ts && node --import tsx tests/market-research.test.ts && node --import tsx tests/research-store.test.ts && node --import tsx tests/contact-discovery.test.ts && node --import tsx tests/prospecting.test.ts",
     "test:browser": "playwright test",
     "openai:check": "node --import tsx scripts/check-openai.ts",
     "test:missing-key": "node scripts/test-missing-key.mjs",

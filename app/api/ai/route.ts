@@ -20,7 +20,8 @@ export async function POST(req:Request){
   const parsed=requestSchema.safeParse(raw);if(!parsed.success)throw new OpenAIIntegrationError('invalid_input','Unknown AI task or invalid request shape.',400);
   const {task,input}=parsed.data;
   if((task==='research'&&role!=='GM')||(task!=='research'&&role!=='BDR'))return Response.json({error:'Role not permitted for this AI task.'},{status:403});
-  const result=await aiAdapter[task](input);
+  if(task!=='research')throw new OpenAIIntegrationError('selection_required','Use the selected-company contact/evidence workflow. Unselected contact or reference tasks are not accepted.',409);
+  const result=await aiAdapter.research(input);
   return Response.json({ok:true,task,...result},{headers:{'Cache-Control':'no-store'}});
  }catch(error){const safe=safeError(error);return Response.json({ok:false,code:safe.code,error:safe.message},{status:safe.status,headers:{'Cache-Control':'no-store'}});}
 }

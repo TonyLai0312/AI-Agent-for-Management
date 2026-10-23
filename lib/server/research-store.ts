@@ -14,7 +14,9 @@ async function load(){const pg=await db();await pg.exec('CREATE TABLE IF NOT EXI
 async function save(workspace:ResearchWorkspace){const pg=await db();await pg.query('INSERT INTO research_workspaces(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=excluded.data',['evox-live-market',JSON.stringify(workspace)]);}
 function view(w:ResearchWorkspace){return {...w,qualification:w.report?qualifyReport(w.report,w.profile):null,profileChangedSinceResearch:!!w.report&&JSON.stringify(w.profile)!==JSON.stringify(w.report.profile)};}
 function stale(w:ResearchWorkspace){if(w.job?.status==='running'&&(!running.has(w.job.id)||Date.now()-Date.parse(w.job.updatedAt)>8*60000)){w.job.status='failed';w.job.phase='failed';w.job.message='Research was interrupted. Retry to start a new live request.';w.job.error={code:'interrupted',message:w.job.message,requestId:null};w.version++;return true;}return false;}
-export async function researchWorkspace(){return serial(async()=>{const w=await load();if(stale(w))await save(w);return view(w);});}
+/** Caller must hold the shared serial lock. Used to validate downstream selections atomically. */
+export async function researchWorkspaceLocked(){const w=await load();if(stale(w))await save(w);return view(w);}
+export async function researchWorkspace(){return serial(researchWorkspaceLocked);}
 function available(w:ResearchWorkspace,version:number){stale(w);if(w.version!==version)throw new OpenAIIntegrationError('workspace_changed','Research workspace changed. Refresh and retry.',409);if(w.job?.status==='running')throw new OpenAIIntegrationError('research_running','Research is already running. Wait for the current attempt.',409);}
 export async function updateResearchProfile(profile:ResearchProfile,version:number){return serial(async()=>{const w=await load();available(w,version);w.profile=profile;w.version++;await save(w);return view(w);});}
 export async function reviewResearchEvidence(input:{version:number;evidenceId:string;status:'verified'|'rejected'|'unverified';note:string},actor:string){return serial(async()=>{
