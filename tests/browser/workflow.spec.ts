@@ -49,3 +49,11 @@ test('concurrent alert checks remain once-only and cross-origin mutations are re
  const s=await state(request);const replies=await Promise.all([request.post('/api/demo',{data:{action:'check-alerts',version:s.campaign.version}}),request.post('/api/demo',{data:{action:'check-alerts',version:s.campaign.version}})]);expect(replies.map(r=>r.status()).sort()).toEqual([200,409]);expect((await state(request)).alerts).toHaveLength(1);expect((await action(request,'check-alerts')).status()).toBe(200);expect((await state(request)).alerts).toHaveLength(1);
  const bad=await request.post('/api/demo',{headers:{Origin:'https://other.example'},data:{action:'check-alerts',version:(await state(request)).campaign.version}});expect(bad.status()).toBe(403);
 });
+test('OpenAI configuration is credential-free; missing-key failures preserve the campaign',async({page,request})=>{
+ const config=await (await request.get('/api/openai')).json();expect(Object.keys(config).sort()).toEqual(['configured','drafting','model','provider','research']);test.skip(config.configured,'Missing-credential test requires an unconfigured runtime; never overrides a configured secret');
+ await page.goto('/');await role(page,'GM');await nav(page,'GM Target Profile');await page.getByRole('button',{name:'Test OpenAI connection'}).click();await expect(page.locator('.notice[role=alert]')).toContainText('OPENAI_API_KEY is not available');
+ await request.post('/api/demo/session',{data:{role:'BDR'}});let reply=await action(request,'generate-openai',{companyId:'qualified'});expect(reply.status()).toBe(422);
+ for(const [operation,data] of [['select',{selected:true}],['approve-contact',{}],['approve-industry',{}],['approve-evidence',{evidenceId:null}]] as const)expect((await action(request,operation,{companyId:'qualified',...data})).status()).toBe(200);
+ const before=await state(request);reply=await action(request,'generate-openai',{companyId:'qualified'});expect(reply.status()).toBe(503);expect((await reply.json()).code).toBe('not_configured');expect(await state(request)).toEqual(before);
+ await page.reload();await nav(page,'Outreach Draft');await expect(page.getByRole('button',{name:'Generate with OpenAI',exact:true})).toBeDisabled();
+});

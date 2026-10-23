@@ -6,7 +6,11 @@ All five supplied documents were read in the first increment: the assignment PDF
 
 The GM profile defaults to 300+ employees, USD 200m+ revenue, six industries (F&B manufacturing, grocery retail, pharmaceutical, chemical, high-tech manufacturing and FMCG), and eleven countries. SEA remains the market-brief focus; the GM document also includes India, Hong Kong, Taiwan, Japan and Korea. SAP, Oracle E-Business Suite, SAP BPC, Oracle Hyperion and Excel are ranking preferences. Initial research period is 23 September–23 October 2026.
 
-## Implemented architecture (version 0.2)
+## OpenAI drafting increment
+
+See `openai-integration.md` for the optional server-side Responses API integration. Templates remain available. The six-screen demo and fixture research described below are preserved; AI drafts use the same approved demo context and require human review. Connection configuration is implemented but live verification is blocked by the missing runtime key.
+
+## Implemented architecture (version 0.2 baseline)
 
 ```mermaid
 flowchart LR

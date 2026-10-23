@@ -1,6 +1,8 @@
 import {cookies} from 'next/headers';
 import {db,load,save,serial,sessionRole,resetDemo} from '@/lib/demo-db';
 import {actionSchema,applyAction,RuleError} from '@/lib/demo-service';
+import {generateApprovedDraft,OpenAIIntegrationError} from '@/lib/server/openai';
+import {prepareOpenAI,finishOpenAI} from '@/lib/server/openai-workflow';
 import {DEMO_ID} from '@/lib/demo-fixtures';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -10,7 +12,14 @@ export async function POST(req:Request){
  const origin=req.headers.get('origin');if(origin&&new URL(origin).host!==req.headers.get('host'))return Response.json({error:'Cross-origin mutations rejected'},{status:403});
  const role=await sessionRole((await cookies()).get('evox-demo-session')?.value);if(!role)return Response.json({error:'Choose a demo identity first'},{status:401});
  const parsed=actionSchema.safeParse(await req.json());if(!parsed.success)return Response.json({error:parsed.error.issues.map(x=>x.message).join('; ')},{status:400});
- const pg=await db();const state=await serial(()=>pg.transaction(async tx=>{const current=await load(tx);const a=parsed.data;
+ const pg=await db();
+ if(parsed.data.action==='generate-openai'){
+  const snapshot=await serial(()=>load(pg));const input=prepareOpenAI(snapshot,parsed.data,role);
+  const generated=await generateApprovedDraft(input);
+  const state=await serial(()=>pg.transaction(async tx=>{const current=await load(tx);const next=finishOpenAI(current,parsed.data,role,generated);await save(tx,next);return next}));
+  return Response.json({state,role});
+ }
+ const state=await serial(()=>pg.transaction(async tx=>{const current=await load(tx);const a=parsed.data;
  if(a.action==='reset'){
   if(role!=='GM')throw new RuleError('GM role required',403);
   if(a.version!==current.campaign.version)throw new RuleError('Workspace changed. Refresh and retry.',409);
@@ -20,5 +29,5 @@ export async function POST(req:Request){
  }
  const next=applyAction(current,a,role);await save(tx,next);return next;
  }));return Response.json({state,role});
- }catch(error){if(error instanceof RuleError)return Response.json({error:error.message},{status:error.status});if(error instanceof SyntaxError)return Response.json({error:'Invalid JSON'},{status:400});console.error(error);return Response.json({error:'Database operation failed; no partial change was saved'},{status:500})}
+ }catch(error){if(error instanceof OpenAIIntegrationError)return Response.json({error:error.message,code:error.code},{status:error.status});if(error instanceof RuleError)return Response.json({error:error.message},{status:error.status});if(error instanceof SyntaxError)return Response.json({error:'Invalid JSON'},{status:400});console.error(error);return Response.json({error:'Database operation failed; no partial change was saved'},{status:500})}
 }

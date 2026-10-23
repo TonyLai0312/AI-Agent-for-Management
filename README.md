@@ -45,3 +45,13 @@ npm run test:browser
 Browser tests use `/usr/bin/chromium` by default. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to your Chromium binary, or install Playwright Chromium and remove `executablePath` from the config. Browser tests intentionally reset the demo campaign; do not point them at a live system. Screenshots and JSON test results go to ignored `work/`.
 
 See `docs/build-plan.md`, `docs/acceptance-criteria.md` and `docs/test-report.md`. Runtime table creation is in `lib/demo-db.ts`. `db/production-schema-proposal.sql` is an unused proposal for a future hosted backend, not the current migration.
+
+## Optional OpenAI drafting
+
+The template workflow still runs without credentials. For real model-generated drafts on the same labelled demo inputs, bind `OPENAI_API_KEY` to the server runtime (never NEXT_PUBLIC), optionally set `OPENAI_MODEL`, and restart. The GM screen has a connection check; Outreach Draft has **Generate with OpenAI**. Existing approvals and BDR review remain required.
+
+```sh
+npm run openai:check
+```
+
+See `docs/openai-integration.md` for setup, tests and the live-connection verification status. The current environment has no accessible key; live verification is blocked until the secret is bound. Research remains fixtures.

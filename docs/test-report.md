@@ -2,6 +2,10 @@
 
 Date: 23 October 2026 (Singapore). Version: 0.2.0. Tested using Node 24.19.0, Next.js 16.4.2, PGlite 0.5.11, Playwright 1.64.1 and installed Chromium. All records are fixtures. These results evaluate the demo's workflow and storage, not AI research accuracy or business productivity.
 
+## Subsequent OpenAI integration
+
+See `openai-integration.md`: 24 unit/database/adapter tests and six production browser/API scenarios pass. The live connection check reports `not_configured`; this is not a verified live API connection. The baseline results below describe the preceding demo release.
+
 ## Final results
 
 | Check | Result |
